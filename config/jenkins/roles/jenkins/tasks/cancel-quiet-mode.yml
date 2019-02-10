@@ -1,0 +1,12 @@
+---
+- include_tasks: "get-crumb.yml"
+
+- name: Cancel quiet mode
+  uri:
+    url: "{{ jenkins_url }}:{{ jenkins_port }}/cancelQuietDown"
+    method: POST
+    headers:
+      Content-Type: "text/xml"
+      Jenkins-Crumb: "{{ jenkins_token.content.split(':')[1] | default('noCrumb') }}"
+    status_code: 200,302
+  when: jenkins_token.status == 200

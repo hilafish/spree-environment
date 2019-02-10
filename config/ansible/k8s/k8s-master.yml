@@ -1,0 +1,57 @@
+---
+- name: Install K8S master services
+  hosts: 127.0.0.1
+  connection: local
+  
+  tasks:
+    - name: General | Load varibles
+      include_vars:
+        file: vars.yml
+        
+    - name: get hostname
+      shell: hostname -f 2>/dev/null || curl http://169.254.169.254/latest/meta-data/local-hostname
+      register: ec2_host_name
+      
+    - name: Copy kubeadm config file to server
+      copy:
+        src: kubeadm.yaml
+        dest: /tmp/kubeadm.yaml
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: K8S | Install Master | Initialize K8S with kubeadm
+      shell: kubeadm init --config /tmp/kubeadm.yaml
+      become: true
+      become_method: sudo
+
+    - name: Delete kubeadm config file 
+      file:
+        state: absent
+        path: "/tmp/kubeadm.yaml"
+
+    - name: K8S | Install Master | Create .kube directory
+      file:
+        path: "{{ lookup('env','HOME') }}/.kube"
+        state: directory
+
+    - name: K8S | Install Master | Copy admin.conf file to /.kube/config
+      shell: "cp -i /etc/kubernetes/admin.conf {{ lookup('env','HOME') }}/.kube/config"
+      become: true
+      become_method: sudo
+
+    - name: K8S | Install Master | Change ownership on /.kube/config
+      file:
+        path: "{{ lookup('env','HOME') }}/.kube/config"
+        owner: ubuntu
+        group: ubuntu
+      become: true
+      become_method: sudo
+
+    - name: K8S | Install Master | Install pod network
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+
+    - name: K8S | Install Master | Install pod network
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+
+

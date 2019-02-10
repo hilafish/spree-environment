@@ -1,0 +1,12 @@
+# # config file version
+apiVersion: 1
+
+providers:
+ - name: 'prometheus'
+   orgId: 1
+   folder: ''
+   type: file
+   disableDeletion: true
+   updateIntervalSeconds: 120 #how often Grafana will scan for changed dashboards
+   options:
+     path: /var/lib/grafana/dashboards

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spree-service
+  labels:
+    run: spree-service
+spec:
+  selector:
+    app: spree-app
+  type: NodePort
+#  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    nodePort: 30061
+    protocol: TCP
+---    
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spree-pod
+  labels:
+    app: spree-app
+spec:
+  containers:
+    - image: hila3000/spree-project:2.0
+      name: spree-app
+      ports:
+      - containerPort: 3000
+        name: http
+        protocol: TCP

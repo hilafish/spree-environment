@@ -1,0 +1,108 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<hudson>
+  <disabledAdministrativeMonitors>
+    <string>GitHubHookRegisterProblemMonitor</string>
+  </disabledAdministrativeMonitors>
+  <version>{{ jenkins_version }}</version>
+  <installStateName>RUNNING</installStateName>
+  <numExecutors>2</numExecutors>
+  <mode>NORMAL</mode>
+  <useSecurity>true</useSecurity>
+  <authorizationStrategy class="hudson.security.FullControlOnceLoggedInAuthorizationStrategy">
+    <denyAnonymousReadAccess>true</denyAnonymousReadAccess>
+  </authorizationStrategy>
+  <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
+    <disableSignup>false</disableSignup>
+    <enableCaptcha>false</enableCaptcha>
+  </securityRealm>
+  <disableRememberMe>false</disableRememberMe>
+  <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
+  <workspaceDir>${JENKINS_HOME}/workspace/${ITEM_FULL_NAME}</workspaceDir>
+  <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
+  <jdks/>
+  <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+  <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
+  <clouds>
+    <hudson.plugins.ec2.EC2Cloud plugin="ec2@1.42">
+      <name>ec2-opsschool-jenkins-slave</name>
+      <useInstanceProfileForCredentials>false</useInstanceProfileForCredentials>
+      <roleArn></roleArn>
+      <roleSessionName></roleSessionName>
+      <credentialsId>6b8ff011-5b5a-4841-a9bf-c35aab0b0816</credentialsId>
+      <privateKey>
+        <privateKey>{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}</privateKey>
+      </privateKey>
+      <instanceCap>2147483647</instanceCap>
+      <templates>
+        <hudson.plugins.ec2.SlaveTemplate>
+          <ami>ami-08f2268664b4ac90f</ami>
+          <description>Jenkins_Slave</description>
+          <zone>us-west-2a</zone>
+          <securityGroups></securityGroups>
+          <remoteFS></remoteFS>
+          <type>T2Micro</type>
+          <ebsOptimized>false</ebsOptimized>
+          <monitoring>false</monitoring>
+          <t2Unlimited>false</t2Unlimited>
+          <labels>ec2-slave</labels>
+          <mode>NORMAL</mode>
+          <initScript></initScript>
+          <tmpDir></tmpDir>
+          <userData></userData>
+          <numExecutors>2</numExecutors>
+          <remoteAdmin>ubuntu</remoteAdmin>
+          <jvmopts></jvmopts>
+          <subnetId></subnetId>
+          <idleTerminationMinutes>2</idleTerminationMinutes>
+          <iamInstanceProfile></iamInstanceProfile>
+          <deleteRootOnTermination>false</deleteRootOnTermination>
+          <useEphemeralDevices>false</useEphemeralDevices>
+          <customDeviceMapping></customDeviceMapping>
+          <instanceCap>2147483647</instanceCap>
+          <stopOnTerminate>true</stopOnTerminate>
+          <tags>
+            <hudson.plugins.ec2.EC2Tag>
+              <name>Name</name>
+              <value>opsschool-jenkins-slave</value>
+            </hudson.plugins.ec2.EC2Tag>
+          </tags>
+          <usePrivateDnsName>false</usePrivateDnsName>
+          <associatePublicIp>false</associatePublicIp>
+          <useDedicatedTenancy>false</useDedicatedTenancy>
+          <amiType class="hudson.plugins.ec2.UnixData">
+            <rootCommandPrefix></rootCommandPrefix>
+            <slaveCommandPrefix></slaveCommandPrefix>
+            <slaveCommandSuffix></slaveCommandSuffix>
+            <sshPort>22</sshPort>
+          </amiType>
+          <launchTimeout>2147483647</launchTimeout>
+          <connectBySSHProcess>false</connectBySSHProcess>
+          <connectUsingPublicIp>false</connectUsingPublicIp>
+          <nextSubnet>0</nextSubnet>
+        </hudson.plugins.ec2.SlaveTemplate>
+      </templates>
+      <region>us-west-2</region>
+      <noDelayProvisioning>false</noDelayProvisioning>
+    </hudson.plugins.ec2.EC2Cloud>
+  </clouds>
+  <quietPeriod>5</quietPeriod>
+  <scmCheckoutRetryCount>0</scmCheckoutRetryCount>
+  <views>
+    <hudson.model.AllView>
+      <owner class="hudson" reference="../../.."/>
+      <name>all</name>
+      <filterExecutors>false</filterExecutors>
+      <filterQueue>false</filterQueue>
+      <properties class="hudson.model.View$PropertyList"/>
+    </hudson.model.AllView>
+  </views>
+  <primaryView>all</primaryView>
+  <slaveAgentPort>-1</slaveAgentPort>
+  <label></label>
+  <crumbIssuer class="hudson.security.csrf.DefaultCrumbIssuer">
+    <excludeClientIPFromCrumb>false</excludeClientIPFromCrumb>
+  </crumbIssuer>
+  <nodeProperties/>
+  <globalNodeProperties/>
+</hudson>

@@ -27,7 +27,7 @@ resource "aws_security_group" "k8s-sg" {
   
   tags {
     Name = "k8s_sg"
-	Cluster = "kubernetes.io/cluster/Kube-Cluster"
+	"kubernetes.io/cluster/kubernetes" = "owned"
     }
 }
 
@@ -62,17 +62,17 @@ resource "aws_instance" "k8s_master" {
   instance_type               = "t2.medium"
   vpc_security_group_ids      = ["${aws_security_group.k8s-sg.id}"]
   associate_public_ip_address = true
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.aws-iam-k8s-instance-profile.name}"
   
   connection {
     user        = "ubuntu"
-    private_key = "${file(var.private_key_path)}"
+    private_key = "${file(var.aws_private_key_path)}"
   }
 				 
   tags {
     Name = "k8s_master"
-	Cluster = "kubernetes.io/cluster/Kube-Cluster"
+	"kubernetes.io/cluster/kubernetes" = "owned"
     }
 	
 provisioner "file" {
@@ -96,8 +96,8 @@ provisioner "file" {
   }
 
 provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/kubeadm.yaml"
-    destination = "/tmp/kubeadm.yaml"
+    source      = "${path.module}/config/ansible/k8s/kubeadm.yaml.j2"
+    destination = "/tmp/kubeadm.yaml.j2"
   }
 
 provisioner "file" {
@@ -123,7 +123,7 @@ provisioner "remote-exec" {
       "sudo pip install ansible",
       "sudo apt-get update",
       "sudo mkdir -p /etc/ansible/playbooks",
-      "sudo mv /tmp/k8s-master.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/install-docker.yml /tmp/20-cloud-provider.conf /etc/ansible/playbooks/",
+      "sudo mv /tmp/k8s-master.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/kubeadm.yaml.j2 /tmp/install-docker.yml /tmp/20-cloud-provider.conf /etc/ansible/playbooks/",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-master.yml",
@@ -141,16 +141,17 @@ resource "aws_instance" "k8s_minion" {
   instance_type               = "t2.micro"
   vpc_security_group_ids      = ["${aws_security_group.k8s-sg.id}"]
   associate_public_ip_address = true
-  key_name                    = "${var.key_name}"
+  key_name                    = "${var.aws_key_name}"
+  iam_instance_profile        = "${aws_iam_instance_profile.aws-iam-k8s-instance-profile.name}"
   
   connection {
     user        = "ubuntu"
-    private_key = "${file(var.private_key_path)}"
+    private_key = "${file(var.aws_private_key_path)}"
   }
   
   tags {
     Name = "k8s_minion-${count.index + 1}"
-	Cluster = "kubernetes.io/cluster/Kube-Cluster"
+	"kubernetes.io/cluster/kubernetes" = "owned"
     }
 	
 provisioner "file" {

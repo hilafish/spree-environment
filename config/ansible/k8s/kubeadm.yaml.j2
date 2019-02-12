@@ -1,0 +1,43 @@
+apiVersion: kubeadm.k8s.io/v1beta1
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: {{ kubeadm_token }}
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: {{ k8s_master_ip }}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: "/var/run/dockershim.sock"
+  name: "{{ ec2_host_name.stdout }}"
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+---
+apiServer:
+  timeoutForControlPlane: 1m30s
+  extraArgs:
+    cloud-provider: "aws"
+apiVersion: kubeadm.k8s.io/v1beta1
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controlPlaneEndpoint: "{{ k8s_master_ip }}:6443"
+controllerManager:
+  extraArgs:
+    cloud-provider: "aws"
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+kind: ClusterConfiguration
+kubernetesVersion: v1.13.0
+networking:
+  dnsDomain: cluster.local
+  podSubnet: "10.10.0.0/16"
+  serviceSubnet: 10.96.0.0/12
+scheduler: {}

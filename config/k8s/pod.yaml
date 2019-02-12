@@ -7,8 +7,8 @@ metadata:
 spec:
   selector:
     app: spree-app
-  type: NodePort
-#  type: LoadBalancer
+#  type: NodePort
+  type: LoadBalancer
   ports:
   - name: http
     port: 80
@@ -24,9 +24,11 @@ metadata:
     app: spree-app
 spec:
   containers:
-    - image: hila3000/spree-project:2.0
+#    - image: hila3000/spree-project:2.0
+    - image: spreecommerce/spree:3.6.4
       name: spree-app
       ports:
       - containerPort: 3000
         name: http
         protocol: TCP
+

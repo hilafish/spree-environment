@@ -9,10 +9,10 @@
         file: vars.yml
         
     - name: get hostname
-      shell: hostname -f 2>/dev/null || curl http://169.254.169.254/latest/meta-data/local-hostname
+      shell: "hostname -f 2>/dev/null || curl http://169.254.169.254/latest/meta-data/local-hostname"
       register: ec2_host_name
         
     - name: K8S | Install Minion | Join K8S with kubeadm
-      shell: kubeadm join --node-name={{ ec2_host_name }} --token={{ kubeadm_token }} --discovery-token-unsafe-skip-ca-verification {{ k8s_master_ip }}:6443 
+      shell: kubeadm join --node-name={{ ec2_host_name.stdout }} --token={{ kubeadm_token }} --discovery-token-unsafe-skip-ca-verification {{ k8s_master_ip }}:6443 
       become: true
       become_method: sudo

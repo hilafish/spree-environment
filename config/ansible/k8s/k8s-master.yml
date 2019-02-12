@@ -5,20 +5,21 @@
   
   tasks:
     - name: General | Load varibles
-      include_vars:
-        file: vars.yml
+      include_vars: vars.yml
         
     - name: get hostname
       shell: hostname -f 2>/dev/null || curl http://169.254.169.254/latest/meta-data/local-hostname
       register: ec2_host_name
       
     - name: Copy kubeadm config file to server
-      copy:
-        src: kubeadm.yaml
+      template:
+        src: kubeadm.yaml.j2
         dest: /tmp/kubeadm.yaml
         owner: root
         group: root
         mode: 0644
+      become: true
+      become_method: sudo
 
     - name: K8S | Install Master | Initialize K8S with kubeadm
       shell: kubeadm init --config /tmp/kubeadm.yaml
@@ -29,6 +30,8 @@
       file:
         state: absent
         path: "/tmp/kubeadm.yaml"
+      become: true
+      become_method: sudo
 
     - name: K8S | Install Master | Create .kube directory
       file:

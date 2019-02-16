@@ -17,6 +17,9 @@ nodeRegistration:
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
+kubelet:
+  extraArgs:
+    cloud-provider: "aws"
 ---
 apiServer:
   timeoutForControlPlane: 1m30s

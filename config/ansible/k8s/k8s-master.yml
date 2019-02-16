@@ -57,4 +57,6 @@
     - name: K8S | Install Master | Install pod network
       shell: kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
 
+    - name: K8S | Install Master | Install Default Storage Class 
+      shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/storage-class/aws/default.yaml
 

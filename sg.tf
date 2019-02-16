@@ -1,8 +1,58 @@
 # SECURITY GROUPS #
 
-resource "aws_security_group" "MySQL" {
+# Kubernetes security group 
+resource "aws_security_group" "k8s-sg" {
+  name        = "k8s_sg"
+
+  # access from anywhere
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  tags {
+    Name = "k8s_sg"
+	"kubernetes.io/cluster/kubernetes" = "owned"
+    }
+}
+
+
+# ELB security group
+#resource "aws_security_group" "k8s-svc-elb-sg" {
+#  name        = "k8s_svc_elb_sg"
+#  vpc_id      = "${aws_vpc.Oregon-VPC.id}"
+#
+#  #Allow HTTP from anywhere
+#  ingress {
+#    from_port   = 3000
+#    to_port     = 3000
+#    protocol    = "tcp"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
+#
+#  #allow all outbound
+#  egress {
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
+#}
+
+
+resource "aws_security_group" "MySQL-sg" {
   name   = "MySQL_sg"
-#  vpc_id = "${aws_vpc.Custom-VPC.id}"
+# vpc_id = "${aws_vpc.Custom-VPC.id}"
 
   # access from anywhere
 
@@ -13,6 +63,70 @@ resource "aws_security_group" "MySQL" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }  
+
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "consul-sg" {
+  name   = "consul_sg"
+# vpc_id = "${aws_vpc.Custom-VPC.id}"
+
+  # access from anywhere
+
+  ingress {
+    from_port   = 8300
+    to_port     = 8600
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }  
+  
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "elastic-search-sg" {
+  name   = "elastic_search_sg"
+# vpc_id = "${aws_vpc.Custom-VPC.id}"
+
+  # access from anywhere
+  ingress {
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }  
+  
   # outbound internet access
   egress {
     from_port   = 0

@@ -2,59 +2,6 @@
 # RESOURCES
 ##################################################################################
 
-
-# SECURITY GROUPS #
-
-# Kubernetes security group 
-resource "aws_security_group" "k8s-sg" {
-  name        = "k8s_sg"
-
-  # access from anywhere
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # outbound internet access
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  tags {
-    Name = "k8s_sg"
-	"kubernetes.io/cluster/kubernetes" = "owned"
-    }
-}
-
-
-# ELB security group
-#resource "aws_security_group" "k8s-svc-elb-sg" {
-#  name        = "k8s_svc_elb_sg"
-#  vpc_id      = "${aws_vpc.Oregon-VPC.id}"
-#
-#  #Allow HTTP from anywhere
-#  ingress {
-#    from_port   = 3000
-#    to_port     = 3000
-#    protocol    = "tcp"
-#    cidr_blocks = ["0.0.0.0/0"]
-#  }
-#
-#  #allow all outbound
-#  egress {
-#    from_port   = 0
-#    to_port     = 0
-#    protocol    = "-1"
-#    cidr_blocks = ["0.0.0.0/0"]
-#  }
-#}
-
-
 # INSTANCES #
 
 resource "aws_instance" "k8s_master" {
@@ -64,6 +11,7 @@ resource "aws_instance" "k8s_master" {
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.aws-iam-k8s-instance-profile.name}"
+  depends_on                  = ["aws_instance.MySQL_Master"]
   
   connection {
     user        = "ubuntu"
@@ -104,6 +52,16 @@ provisioner "file" {
     source      = "${path.module}/config/ansible/k8s/20-cloud-provider.conf"
     destination = "/tmp/20-cloud-provider.conf"
   }
+
+provisioner "file" {
+    source      = "${path.module}/config/ansible/k8s/kubelet"
+    destination = "/tmp/kubelet"
+  }
+
+provisioner "file" {
+    source      = "${path.module}/config/k8s/my-secret.yaml"
+    destination = "/tmp/my-secret.yaml"
+  }
   
 provisioner "file" {
     content = <<EOF
@@ -123,13 +81,15 @@ provisioner "remote-exec" {
       "sudo pip install ansible",
       "sudo apt-get update",
       "sudo mkdir -p /etc/ansible/playbooks",
-      "sudo mv /tmp/k8s-master.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/kubeadm.yaml.j2 /tmp/install-docker.yml /tmp/20-cloud-provider.conf /etc/ansible/playbooks/",
+      "sudo mv /tmp/k8s-master.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/kubeadm.yaml.j2 /tmp/install-docker.yml /tmp/20-cloud-provider.conf /tmp/kubelet /etc/ansible/playbooks/",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-master.yml",
 	  "sudo mv /tmp/pod.yaml /etc/kubernetes",
 	  "sleep 60",
-	  "kubectl create -f /etc/kubernetes/pod.yaml"
+	  "kubectl create -f /etc/kubernetes/pod.yaml",
+	  "kubectl create -f /tmp/my-secret.yaml",
+	  "shred -v -n 25 -u -z /tmp/my-secret.yaml"
     ]
   }  
 }
@@ -175,6 +135,11 @@ provisioner "file" {
   }
   
 provisioner "file" {
+    source      = "${path.module}/config/ansible/k8s/kubelet"
+    destination = "/tmp/kubelet"
+  }
+  
+provisioner "file" {
     content = <<EOF
 ---
 kubeadm_token: "gqv3y0.91c3dhvt24c2s63h"
@@ -182,7 +147,6 @@ k8s_master_ip: "${aws_instance.k8s_master.private_ip}"
 EOF
 				
     destination = "/tmp/vars.yml"
-
   }
 
 provisioner "remote-exec" {
@@ -193,24 +157,10 @@ provisioner "remote-exec" {
 	  "sudo pip install ansible",
       "sudo apt-get update",
 	  "sudo mkdir -p /etc/ansible/playbooks",
-	  "sudo mv /tmp/vars.yml /tmp/k8s-minion.yml /tmp/k8s-common.yml /tmp/install-docker.yml /tmp/20-cloud-provider.conf /etc/ansible/playbooks/",
+	  "sudo mv /tmp/k8s-minion.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/install-docker.yml /tmp/20-cloud-provider.conf /tmp/kubelet /etc/ansible/playbooks/",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
 	  "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
 	  "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-minion.yml"
-
     ]
   }  
-}
-
-##################################################################################
-# OUTPUT
-##################################################################################
-
-
-output "k8s_master_public_dns" {
-    value = "${aws_instance.k8s_master.public_dns}"
-}
-
-output "minions_public_dns" {
-    value = "${aws_instance.k8s_minion.*.public_dns}"
 }

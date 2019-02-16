@@ -9,7 +9,7 @@
 set -x
 export TERM=xterm-256color
 export DEBIAN_FRONTEND=noninteractive
-export DATACENTER_NAME="opsschool"
+export DATACENTER_NAME="OpsSchool"
 
 
 #Bringing the Information
@@ -27,15 +27,6 @@ apt-get install -y \
     jq \
     unzip \
     dnsmasq
-
-
-sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-
-sudo apt-get update
-
 
 echo "Enabling *.service.consul resolution system wide"
 cat << EODMCF >/etc/dnsmasq.d/10-consul
@@ -89,34 +80,29 @@ Type=notify
 WantedBy=multi-user.target
 EOCSU
 
-
-sudo echo '{"service": {"name": "mysql_master", "tags": ["mysql", "mysql_master"], "port": 3306}}' >> /etc/consul.d/mysql_master.json
+sudo echo '{"service": {"name": "mysql-master", "tags": ["mysql-master"], "port": 3306}}' >> /etc/consul.d/mysql-master.json
 
 systemctl daemon-reload
 systemctl start consul
 
-
 # Install and define mysql
-apt-get update
+wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
+sudo dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
+sudo apt-get update
+dbpass=""
+export DEBIAN_FRONTEND=noninteractive
+echo percona-server-server-5.7 percona-server-server/root_password password $dbpass | sudo debconf-set-selections
+echo percona-server-server-5.7 percona-server-server/root_password_again password $dbpass | sudo debconf-set-selections
+sudo apt-get -y install percona-server-server-5.7
+rm -rf percona-release_latest.$(lsb_release -sc)_all.deb
 apt-get install -y curl jq
-apt-get install -y gdebi
-cd /opt
-wget  https://www.percona.com/downloads/Percona-Server-5.7/Percona-Server-5.7.24-27/binary/debian/trusty/x86_64/percona-server-client-5.7_5.7.24-27-1.trusty_amd64.deb
-wget  https://www.percona.com/downloads/Percona-Server-5.7/Percona-Server-5.7.24-27/binary/debian/trusty/x86_64/percona-server-common-5.7_5.7.24-27-1.trusty_amd64.deb
-wget  https://www.percona.com/downloads/Percona-Server-5.7/Percona-Server-5.7.24-27/binary/debian/trusty/x86_64/percona-server-server-5.7_5.7.24-27-1.trusty_amd64.deb
-wget  https://www.percona.com/downloads/Percona-Server-5.7/Percona-Server-5.7.24-27/binary/debian/trusty/x86_64/libperconaserverclient20_5.7.24-27-1.trusty_amd64.deb
-apt-get update
-export DEBIAN_FRONTEND=noninteractive;
-gdebi -n percona-server-common-5.7_5.7.24-27-1.trusty_amd64.deb 
-gdebi -n libperconaserverclient20_5.7.24-27-1.trusty_amd64.deb 
-gdebi -n percona-server-client-5.7_5.7.24-27-1.trusty_amd64.deb 
-gdebi -n percona-server-server-5.7_5.7.24-27-1.trusty_amd64.deb  
+apt-get install -y gdebi  
+echo "bind-address = ${LOCAL_IPV4}" >> /etc/mysql/percona-server.conf.d/mysqld.cnf
 sudo mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '11111';" 
 sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
 sudo mysql -e "CREATE DATABASE spree;"
-EOF 
-#### need to bind address here in mysqld.cnf
-
+sudo service mysql stop
+sudo service mysql start
 
 # Install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.5.4-amd64.deb

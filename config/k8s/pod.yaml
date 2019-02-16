@@ -7,13 +7,11 @@ metadata:
 spec:
   selector:
     app: spree-app
-#  type: NodePort
   type: LoadBalancer
   ports:
   - name: http
     port: 80
     targetPort: 3000
-    nodePort: 30061
     protocol: TCP
 ---    
 apiVersion: v1
@@ -24,11 +22,13 @@ metadata:
     app: spree-app
 spec:
   containers:
-#    - image: hila3000/spree-project:2.0
-    - image: spreecommerce/spree:3.6.4
-      name: spree-app
-      ports:
-      - containerPort: 3000
-        name: http
-        protocol: TCP
+  - name: spree-app
+    image: hila3000/spree-project:2.0
+# - image: spreecommerce/spree:3.6.4
+    ports:
+    - containerPort: 3000
+      name: http
+      protocol: TCP
+  imagePullSecrets:
+  - name: registrypullsecret
 

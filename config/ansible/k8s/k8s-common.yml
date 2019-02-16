@@ -48,3 +48,13 @@
         mode: 0644
       become: true
       become_method: sudo
+      
+    - name: Enable the AWS cloud provider on Kubelet #2
+      copy:
+        src: kubelet
+        dest: /etc/default/kubelet
+        owner: root
+        group: root
+        mode: 0644
+      become: true
+      become_method: sudo

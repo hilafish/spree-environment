@@ -1,13 +1,5 @@
 ---
 
-- name: Configuration file is up to date (config.xml)
-  template:
-    src: "{{ jenkins_source_config_xml }}"
-    dest: "{{ jenkins_home }}/config.xml"
-    mode: 0644
-    owner: "{{ jenkins_config_owner }}"
-    group: "{{ jenkins_config_group }}"
-
 - name: Configure Jenkins location
   template:
     src: files/jenkins.model.JenkinsLocationConfiguration.xml.j2

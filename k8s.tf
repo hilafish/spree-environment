@@ -5,7 +5,7 @@
 # INSTANCES #
 
 resource "aws_instance" "k8s_master" {
-  ami                         = "${data.aws_ami.ubuntu16.id}"
+  ami                         = "${data.aws_ami.ubuntu.id}"
   instance_type               = "t2.medium"
   vpc_security_group_ids      = ["${aws_security_group.k8s-sg.id}"]
   associate_public_ip_address = true
@@ -39,9 +39,15 @@ provisioner "file" {
   }
 
 provisioner "file" {
-    source      = "${path.module}/config/k8s/pod.yaml"
-    destination = "/tmp/pod.yaml"
+    source      = "${path.module}/config/k8s/service.yaml"
+    destination = "/tmp/service.yaml"
   }
+
+provisioner "file" {
+    source      = "${path.module}/config/k8s/deploy.yaml"
+    destination = "/tmp/deploy.yaml"
+  }
+
 
 provisioner "file" {
     source      = "${path.module}/config/ansible/k8s/kubeadm.yaml.j2"
@@ -85,9 +91,10 @@ provisioner "remote-exec" {
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-master.yml",
-	  "sudo mv /tmp/pod.yaml /etc/kubernetes",
+	  "sudo mv /tmp/deploy.yaml /tmp/service.yaml /etc/kubernetes",
 	  "sleep 60",
-	  "kubectl create -f /etc/kubernetes/pod.yaml",
+	  "kubectl create -f /etc/kubernetes/deploy.yaml",
+	  "kubectl create -f /etc/kubernetes/service.yaml",
 	  "kubectl create -f /tmp/my-secret.yaml",
 	  "shred -v -n 25 -u -z /tmp/my-secret.yaml"
     ]
@@ -97,7 +104,7 @@ provisioner "remote-exec" {
 
 resource "aws_instance" "k8s_minion" {
   count                       = 2
-  ami                         = "${data.aws_ami.ubuntu16.id}"
+  ami                         = "${data.aws_ami.ubuntu.id}"
   instance_type               = "t2.micro"
   vpc_security_group_ids      = ["${aws_security_group.k8s-sg.id}"]
   associate_public_ip_address = true

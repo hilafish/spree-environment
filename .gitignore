@@ -1,0 +1,5 @@
+.git
+config/k8s/my-secret.yaml
+.terraform
+terraform.tfstate
+terraform.tfstate.backup

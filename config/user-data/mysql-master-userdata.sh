@@ -97,12 +97,13 @@ sudo apt-get -y install percona-server-server-5.7
 rm -rf percona-release_latest.$(lsb_release -sc)_all.deb
 apt-get install -y curl jq
 apt-get install -y gdebi  
-echo "bind-address = ${LOCAL_IPV4}" >> /etc/mysql/percona-server.conf.d/mysqld.cnf
+sudo bash -c "echo bind-address = ${LOCAL_IPV4} >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
+sudo service mysql stop
+sudo service mysql start
 sudo mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '11111';" 
 sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
 sudo mysql -e "CREATE DATABASE spree;"
-sudo service mysql stop
-sudo service mysql start
+
 
 # Install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.5.4-amd64.deb

@@ -6,7 +6,7 @@
 
 resource "aws_instance" "consul_server" {
   count                  = 3
-  ami                    = "${data.aws_ami.ubuntu16.id}"
+  ami                    = "${data.aws_ami.ubuntu.id}"
   instance_type          = "t2.micro"
   vpc_security_group_ids = ["${aws_security_group.consul-sg.id}"]
   key_name               = "${var.aws_key_name}"
@@ -28,7 +28,7 @@ resource "aws_instance" "consul_server" {
 
 
 resource "aws_instance" "elastic_search" {
-  ami                    = "${data.aws_ami.ubuntu16.id}"
+  ami                    = "${data.aws_ami.ubuntu.id}"
   instance_type          = "t2.micro"
   vpc_security_group_ids = ["${aws_security_group.elastic-search-sg.id}"]
 # subnet_id              = "${aws_subnet.priv_subnet.id}"
@@ -50,12 +50,13 @@ resource "aws_instance" "elastic_search" {
 
 
 resource "aws_instance" "MySQL_Master" {
-  ami                         = "${data.aws_ami.ubuntu16.id}"
+  ami                         = "${data.aws_ami.ubuntu.id}"
   instance_type               = "t2.micro"
   vpc_security_group_ids      = ["${aws_security_group.MySQL-sg.id}"]
+  private_ip                  = "172.31.17.9"
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
-  iam_instance_profile   = "${aws_iam_instance_profile.consul-server-instance-profile.name}" 
+  iam_instance_profile        = "${aws_iam_instance_profile.consul-server-instance-profile.name}" 
 # subnet_id                   = "${aws_subnet.pub_subnet.id}"
   depends_on                  = ["aws_instance.consul_server"]
 

@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: spree-3.0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: spree-app
+        version: "3.0"
+    spec:
+      containers:
+        - name: spree-app
+          image: hila3000/spree-project:3.0
+          ports:
+            - name: http
+              containerPort: 3000
+      imagePullSecrets:
+      - name: registrypullsecret

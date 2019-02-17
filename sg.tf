@@ -135,3 +135,31 @@ resource "aws_security_group" "elastic-search-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+resource "aws_security_group" "jenkins-sg" {
+  name   = "jenkins_sg"
+# vpc_id = "${aws_vpc.Custom-VPC.id}"
+
+  # access from anywhere
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }  
+  
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}

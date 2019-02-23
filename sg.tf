@@ -140,14 +140,35 @@ resource "aws_security_group" "jenkins-sg" {
   name   = "jenkins_sg"
 # vpc_id = "${aws_vpc.Custom-VPC.id}"
 
-  # access from anywhere
+  # access from Git for Webhooks
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["192.30.252.0/22"]
   }
+  # access from Git #2 for Webhooks
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["185.199.108.0/22"]
+  }
+  # access from Git #3 for Webhooks
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["140.82.112.0/20"]
+  }  
 
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }  
+  
   ingress {
     from_port   = 22
     to_port     = 22

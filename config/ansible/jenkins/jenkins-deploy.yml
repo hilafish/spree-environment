@@ -8,6 +8,7 @@
     jenkins_install_via: "apt"
     jenkins_jobs: [
         "spree-project",
+        "blue-green-k8s-deployment",
       ]
       
   roles:

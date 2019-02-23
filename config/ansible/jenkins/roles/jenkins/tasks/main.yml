@@ -15,6 +15,14 @@
     mode: 0644
     owner: "{{ jenkins_config_owner }}"
     group: "{{ jenkins_config_group }}"
+    
+- name: Configuration file is up to date (publish-over-ssh xml)
+  template:
+    src: "{{ jenkins_source_dir_configs }}/jenkins.plugins.publish_over_ssh.BapSshPublisherPlugin.xml.j2"
+    dest: "{{ jenkins_home }}/jenkins.plugins.publish_over_ssh.BapSshPublisherPlugin.xml"
+    mode: 0644
+    owner: "{{ jenkins_config_owner }}"
+    group: "{{ jenkins_config_group }}"
 
 - include: "configure-jobs.yml"
 

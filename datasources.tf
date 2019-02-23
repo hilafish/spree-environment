@@ -28,3 +28,22 @@ data "template_file" "elasticsearch-userdata" {
   }
 }
 
+#data "template_cloudinit_config" "MySQL" {
+#
+#  # get first user_data
+#  part {
+#    filename     = "mysql-master-userdata.sh"
+#    content_type = "text/part-handler"
+#    content      = "${file("${path.module}/config/user-data/mysql-master-userdata.sh")}"
+#  }
+#
+#  # get second user_data - load data to mysql
+#  part {
+#    filename     = "spree_all.sql"
+#    content_type = "text/part-handler"
+#    content      = "${file("${path.module}/config/mysql/spree_all.sql")}"
+#  }
+#  
+#}
+
+

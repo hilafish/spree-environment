@@ -106,7 +106,7 @@ Author Information
 ------------------
 
 Made with love by Emmet O'Grady.
-Chamges made to allow ec2 plugin configuration + store credentials by Hila F
+Changes made to allow ec2 plugin configuration, installation of several addition plugins and their configurations + store credentials by Hila F
 
 Emmet O'Grady is the founder of [NimbleCI](https://nimbleci.com) which
 builds Docker containers for feature branch workflow projects in Github.

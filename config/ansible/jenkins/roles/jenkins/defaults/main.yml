@@ -51,6 +51,10 @@ jenkins_plugins:
   - github
   - kubernetes-cd
   - github-api
+  - publish-over
+  - publish-over-ssh
+  - envinject
+  - envinject-api
 
 # List of sources of custom jenkins plugins to install
 jenkins_custom_plugins: []

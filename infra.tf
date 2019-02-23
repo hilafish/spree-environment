@@ -24,6 +24,7 @@ resource "aws_instance" "consul_server" {
   }
 
   user_data = "${file("${path.module}/config/user-data/consul-server-userdata.sh")}"
+   
 }
 
 
@@ -57,7 +58,7 @@ resource "aws_instance" "MySQL_Master" {
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.consul-server-instance-profile.name}" 
-# subnet_id                   = "${aws_subnet.pub_subnet.id}"
+# subnet_id                   = "${aws_subnet.priv_subnet.id}"
   depends_on                  = ["aws_instance.consul_server"]
 
   connection {
@@ -70,6 +71,7 @@ resource "aws_instance" "MySQL_Master" {
   }
 
   user_data = "${file("${path.module}/config/user-data/mysql-master-userdata.sh")}"
+  
 }
 
 

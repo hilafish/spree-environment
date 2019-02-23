@@ -14,7 +14,7 @@
   <properties>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
-        <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.3">
+        <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.4">
           <spec></spec>
         </com.cloudbees.jenkins.GitHubPushTrigger>
       </triggers>
@@ -36,7 +36,9 @@
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
       <submoduleCfg class="list"/>
-      <extensions/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.PerBuildTag/>
+      </extensions>
     </scm>
     <scriptPath>Jenkinsfile</scriptPath>
     <lightweight>true</lightweight>

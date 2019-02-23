@@ -12,6 +12,7 @@
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
   <workspaceDir>${ITEM_ROOTDIR}/workspace</workspaceDir>
   <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
   <jdks/>
   <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
   <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
@@ -24,9 +25,9 @@
       <credentialsId>jenkins_aws_key</credentialsId>
       <privateKey>
         <privateKey>{{ vault_jenkins_aws_key }}</privateKey>
-      </privateKey>
+	  </privateKey>
       <instanceCap>2147483647</instanceCap>
-	  <templates>
+      <templates>
         <hudson.plugins.ec2.SlaveTemplate>
           <ami>ami-08f2268664b4ac90f</ami>
           <description>Jenkins_Slave</description>
@@ -53,7 +54,7 @@
           <customDeviceMapping></customDeviceMapping>
           <instanceCap>2147483647</instanceCap>
           <stopOnTerminate>true</stopOnTerminate>
-		  <tags>
+          <tags>
             <hudson.plugins.ec2.EC2Tag>
               <name>Name</name>
               <value>opsschool-jenkins-slave</value>
@@ -95,5 +96,3 @@
   <nodeProperties/>
   <globalNodeProperties/>
 </hudson>
-  
-		  

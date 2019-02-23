@@ -74,6 +74,7 @@ provisioner "file" {
 ---
 kubeadm_token: "gqv3y0.91c3dhvt24c2s63h"
 k8s_master_ip: "${aws_instance.k8s_master.private_ip}"
+jenkins_public_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRf/6fsLlZVA1H1TxvLbDdq4DVuCvcRAwV6JbpWarYapF56JDcpHkazHWnIKz79rR8tYjS4UwhWB4K1JEV9mykJ8MXAhgHe8pd8ZoLh5DL998zkSmtUsIjQ822ACdJENL7KS9SYbVI1T6y2Dk5MI4/Ub1zixxGxukEjm4BzH1XTsOsFgAp53vi8q5cBEz15Z5FT+wSwVz+206SjZXeo3OnOkoMZrVCO8hPA2j7XYYqXhemWe2WNpX9mBvpvl9PrATJbfEFi+F6f6HaatfsEwe9NTnbFuUR75eiN3fMTIdJvCLcdTuxqj2DLA/yQrQfLEskT/+f/vuzfj40qXCVpcpx jenkins@jenkins_server"
                 EOF
 				
     destination = "/tmp/vars.yml"
@@ -110,6 +111,7 @@ resource "aws_instance" "k8s_minion" {
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.aws-iam-k8s-instance-profile.name}"
+  depends_on                  = ["aws_instance.MySQL_Master"]
   
   connection {
     user        = "ubuntu"

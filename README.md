@@ -1,9 +1,19 @@
 Spree-environment
 ========================
 
-Terraform & Ansible configurations that provision Spree app in K8S pod (via CI/CD process in Jenkins) with prometheus/kibana monitoring
+What is this repo about?
+------------------------
 
-How to use this repository and install a fully working environment with dummy exporter, grafana, kibana, etc?
+Terraform & Ansible configurations that provision Spree app in K8S pods (via CI/CD process in Jenkins)
+on AWS (Using it as the cloud provider) with prometheus/kibana monitoring
+
+Deploying this repo will provision a fully working environment (almost :) need to manually run jenkins job once,
+and re-register jobs hooks and then it'll ALL be automatic) that demonstrates a full life cycle of an application
+including its entire supporting infrastructure and monitoring.
+
+
+How to use this repository 
+--------------------------
 
 1. `git clone https://github.com/hilafish/spree-environment.git`
 
@@ -14,8 +24,6 @@ How to use this repository and install a fully working environment with dummy ex
 4. `terraform plan -var 'aws_access_key=access_key_here' -var 'aws_secret_key=secret_key_here' -var 'aws_private_key_path=path_to_private_key_here' -var 'aws_key_name=key_pair_name_here' -var 'vault_pass=vault_pass'`
 
 (if you want to know what's going to be installed.. it's a good practice to run plan first)
-
-***NOTE***: region = "us-west-2". If you would like to use other region, change it in the ec2.tf file.
 
 5. `terraform apply -var 'aws_access_key=access_key_here' -var 'aws_secret_key=secret_key_here' -var 'aws_private_key_path=path_to_private_key_here' -var 'aws_key_name=key_pair_name_here' -var 'vault_pass=vault_pass' --auto-approve`
 
@@ -43,7 +51,7 @@ Grafana:
 2. login with user admin, password admin
 3. you'll be prompt to change the password, please do so.
 4. If you'll get "unauthorized!" message after login, just refresh the page and it'll get sorted out.
-5. click on "Home" and then choose the "dummy_exporter_dashboard"
+5. click on "Home" and then choose any of the available dashboards (MySQL, System, k8s)
 6. enjoy viewing the data :)
 
 Kibana:

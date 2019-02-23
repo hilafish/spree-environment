@@ -22,19 +22,19 @@ provisioner "file" {
   
 provisioner "remote-exec" {
     inline = [
-	  "sleep 30",
-	  "sudo apt-get update",
+      "sleep 30",
+      "sudo apt-get update",
       "sudo apt-get install -y python python-pip",
       "sudo pip install ansible",
       "sudo apt-get update",
       "sudo mkdir -p /etc/ansible/playbooks",
-	  "echo ${var.vault_pass} > /tmp/ansible_vault_pass",
-	  "chmod 400 /tmp/ansible_vault_pass",
+      "echo ${var.vault_pass} > /tmp/ansible_vault_pass",
+      "chmod 400 /tmp/ansible_vault_pass",
       "sudo mv /tmp/jenkins /etc/ansible/playbooks/",
-	  "PUBLIC_IP=$(curl \"http://169.254.169.254/latest/meta-data/public-ipv4\")",
-	  "sudo sed -i \"s/127.0.0.1/$${PUBLIC_IP}/g\" /etc/ansible/playbooks/jenkins/jenkins-deploy.yml /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
+      "PUBLIC_IP=$(curl \"http://169.254.169.254/latest/meta-data/public-ipv4\")",
+      "sudo sed -i \"s/127.0.0.1/$${PUBLIC_IP}/g\" /etc/ansible/playbooks/jenkins/jenkins-deploy.yml /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
       "ansible-playbook --connection=local --vault-password-file=/tmp/ansible_vault_pass --inventory 127.0.0.1 /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
-	  "sudo shred -v -n 25 -u -z /tmp/ansible_vault_pass"
+      "sudo shred -v -n 25 -u -z /tmp/ansible_vault_pass"
     ]
   }  
 }

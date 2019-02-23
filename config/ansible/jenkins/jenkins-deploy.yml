@@ -1,14 +1,14 @@
 - hosts: localhost
   become: yes
-
+  
   vars:
     jenkins_version: "2.150.3"
-    jenkins_url: http://127.0.0.1:8080
+    jenkins_url: http://127.0.0.1
     jenkins_port: 8080
     jenkins_install_via: "apt"
     jenkins_jobs: [
-    "spree-project",
+        "spree-project",
       ]
-                                   
+      
   roles:
     - jenkins

@@ -10,6 +10,7 @@ variable "aws_secret_key" {
     default = "<your_aws_secret_key>"
 } 
 
+
 variable "aws_private_key_path" {
     default = "<your_aws_private_key_path>"
 }
@@ -21,6 +22,8 @@ variable "aws_key_name" {
 variable "aws_region" {
     default = "us-west-2"
 }
+
+variable "vault_pass" {}
 
 ##################################################################################
 # PROVIDERS

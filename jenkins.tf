@@ -1,6 +1,6 @@
 resource "aws_instance" "jenkins" {
   ami                         = "${data.aws_ami.ubuntu.id}"
-  instance_type               = "t2.medium"
+  instance_type               = "t2.micro"
   vpc_security_group_ids      = ["${aws_security_group.jenkins-sg.id}"]
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
@@ -19,7 +19,7 @@ provisioner "file" {
     source      = "${path.module}/config/ansible/jenkins"
     destination = "/tmp"
   }
-
+  
 provisioner "remote-exec" {
     inline = [
 	  "sleep 30",
@@ -28,10 +28,22 @@ provisioner "remote-exec" {
       "sudo pip install ansible",
       "sudo apt-get update",
       "sudo mkdir -p /etc/ansible/playbooks",
+	  "echo ${var.vault_pass} > /tmp/ansible_vault_pass",
+	  "chmod 400 /tmp/ansible_vault_pass",
       "sudo mv /tmp/jenkins /etc/ansible/playbooks/",
-#	  "PUBLIC_IP=$(curl "http://169.254.169.254/latest/meta-data/public-ipv4")",
-#	  "sudo sed -i 's/jenkins_url: http://127.0.0.1:8080/jenkins_url: http://${PUBLIC_IP}:8080/g' /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
-      "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/jenkins/jenkins-deploy.yml"
+	  "PUBLIC_IP=$(curl \"http://169.254.169.254/latest/meta-data/public-ipv4\")",
+	  "sudo sed -i \"s/127.0.0.1/$${PUBLIC_IP}/g\" /etc/ansible/playbooks/jenkins/jenkins-deploy.yml /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
+      "ansible-playbook --connection=local --vault-password-file=/tmp/ansible_vault_pass --inventory 127.0.0.1 /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
+	  "sudo shred -v -n 25 -u -z /tmp/ansible_vault_pass"
     ]
   }  
+}
+
+
+###################################################################################
+## OUTPUT
+###################################################################################
+
+output "Jenkins_public_ip" {
+  value = "${aws_instance.jenkins.public_ip}"
 }

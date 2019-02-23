@@ -1,11 +1,11 @@
 ---
 
-jenkins_version: "2.150.3" # The exact version of jenkins to deploy
+jenkins_version: "2.73.1" # The exact version of jenkins to deploy
 
 jenkins_url: "http://127.0.0.1" # The url that Jenkins will be accessible on
 jenkins_port: "8080" # The port that Jenkins will listen on
 jenkins_home: /var/lib/jenkins # The directory on the server where the Jenkins configs will live
-jenkins_admin: "admin@jenkinscorp.com" # The admininstrator email address for the Jenkins server
+jenkins_admin: "admin@example.com" # The admininstrator email address for the Jenkins server
 
 # If you need to override any java options then do that here.
 jenkins_java_opts: "-Djenkins.install.runSetupWizard=false"
@@ -18,7 +18,12 @@ jenkins_config_group: "jenkins"
 jenkins_source_dir_configs: "{{ playbook_dir }}/jenkins-configs"
 jenkins_source_dir_jobs: "{{ jenkins_source_dir_configs }}/jobs"
 
+# When defined, include this task file after configuring jobs. This happens
+# at the very end of the role, but before Jenkins is taken out of quiet mode.
+jenkins_after_config_jobs_file: false
+
 # config.xml template source
+jenkins_source_initconfig_xml: "{{ jenkins_source_dir_configs }}/initial-config.xml"
 jenkins_source_config_xml: "{{ jenkins_source_dir_configs }}/config.xml.j2"
 jenkins_source_credentials_xml: "{{ jenkins_source_dir_configs }}/credentials.xml"
 
@@ -27,7 +32,7 @@ jenkins_include_custom_files: false
 jenkins_custom_files: {} # src and dest names
 
 # Include secrets directory during installation
-jenkins_include_secrets: true
+jenkins_include_secrets: false
 jenkins_source_secrets: "{{ jenkins_source_dir_configs }}/secrets/"
 
 # The names of the jobs (config.xml must exist under jenkins_source_dir_jobs/job_name/)

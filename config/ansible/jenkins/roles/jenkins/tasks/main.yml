@@ -1,44 +1,34 @@
 ---
-
 - include: "{{ jenkins_install_via }}/install.yml"
 
-# Jenkins should not be running while we change the configuration
-# data, otherwise some files might be overwritten when it restarts
-- include: "{{ jenkins_install_via }}/stop.yml"
 - include: "configure-jenkins.yml"
 
-- include: "{{ jenkins_install_via }}/restart.yml"
-- include: "wait-for-start.yml"
-- include: "set-quiet-mode.yml"
 - include: "configure-plugins.yml"
+    
+- include: "configure-files.yml"
+  when: jenkins_include_custom_files
 
+- name: Configuration file is up to date (github-plugin-configuration.xml)
+  template:
+    src: "{{ jenkins_source_dir_configs }}/github-plugin-configuration.xml"
+    dest: "{{ jenkins_home }}/github-plugin-configuration.xml"
+    mode: 0644
+    owner: "{{ jenkins_config_owner }}"
+    group: "{{ jenkins_config_group }}"
 
-- name: Configuration file is updated (config.xml)
+- include: "configure-jobs.yml"
+
+- name: Configuration file is up to date (config.xml)
   template:
     src: "{{ jenkins_source_config_xml }}"
     dest: "{{ jenkins_home }}/config.xml"
     mode: 0644
     owner: "{{ jenkins_config_owner }}"
     group: "{{ jenkins_config_group }}"
-    
-- name: github server config is updated (github-plugin-configuration.xml)
-  template:
-    src: "{{ jenkins_source_config_xml }}"
-    dest: "{{ jenkins_home }}/github-plugin-configuration.xml"
-    mode: 0644
-    owner: "{{ jenkins_config_owner }}"
-    group: "{{ jenkins_config_group }}"
-    
-    
-- name: Credentials file is updated (credentials.xml)
-  template:
-    src: "{{ jenkins_source_config_xml }}"
-    dest: "{{ jenkins_home }}/credentials.xml"
-    mode: 0644
-    owner: "{{ jenkins_config_owner }}"
-    group: "{{ jenkins_config_group }}"
 
+- include: "{{ jenkins_after_config_jobs_file }}"
+  when: jenkins_after_config_jobs_file
 
-- include: "configure-jobs.yml"
+- include: "start.yml"
+
 - include: "cancel-quiet-mode.yml"
-- include: "{{ jenkins_after_config_jobs_file | default('empty.yml') }}"

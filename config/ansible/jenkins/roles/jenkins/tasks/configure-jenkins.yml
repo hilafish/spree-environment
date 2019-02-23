@@ -1,4 +1,32 @@
 ---
+# Jenkins should not be running while we write configuration files, otherwise
+# otherwise some data might be overwritten when it restarts.
+- include_tasks: "{{ jenkins_install_via }}/stop.yml"
+- include_vars: ../vars/vault.yml
+
+- name: Ensure correct ownership of JENKINS_HOME directory
+  file:
+    path: "{{ jenkins_home }}"
+    owner: "{{ jenkins_config_owner }}"
+    group: "{{ jenkins_config_group }}"
+    mode: 0755
+    state: directory
+
+- name: Initial Configuration file is in place (initial-config.xml)
+  template:
+    src: "{{ jenkins_source_initconfig_xml }}"
+    dest: "{{ jenkins_home }}/config.xml"
+    mode: 0644
+    owner: "{{ jenkins_config_owner }}"
+    group: "{{ jenkins_config_group }}"
+
+- name: Credentials file is up to date (credentials.xml)
+  template:
+    src: "{{ jenkins_source_credentials_xml }}"
+    dest: "{{ jenkins_home }}/credentials.xml"
+    mode: 0644
+    owner: "{{ jenkins_config_owner }}"
+    group: "{{ jenkins_config_group }}"
 
 - name: Configure Jenkins location
   template:
@@ -7,26 +35,6 @@
     mode: 0644
     owner: "{{ jenkins_config_owner }}"
     group: "{{ jenkins_config_group }}"
-
-- name: Create intermediate dirs for custom files
-  file:
-    path: "{{ jenkins_home }}/{{ item.dest | dirname }}"
-    owner: "{{ jenkins_config_owner }}"
-    group: "{{ jenkins_config_group }}"
-    mode: 0755
-    state: directory
-  when: jenkins_include_custom_files
-  with_items: "{{ jenkins_custom_files }}"
-
-- name: Configure custom files
-  template:
-    src: "{{ jenkins_source_dir_configs }}/{{ item.src }}"
-    dest: "{{ jenkins_home }}/{{ item.dest }}"
-    mode: 0644
-    owner: "{{ jenkins_config_owner }}"
-    group: "{{ jenkins_config_group }}"
-  when: jenkins_include_custom_files
-  with_items: "{{ jenkins_custom_files }}"
 
 - name: secrets dir is up to date
   copy:

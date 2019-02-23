@@ -11,6 +11,11 @@ export TERM=xterm-256color
 export DEBIAN_FRONTEND=noninteractive
 export DATACENTER_NAME="OpsSchool"
 
+sudo rm -rf /var/lib/dpkg/lock
+sudo rm -rf /var/lib/dpkg/lock-frontend
+sudo rm -rf /var/cache/apt/archives/lock
+sudo rm -rf /var/cache/debconf/config.dat
+
 
 #Bringing the Information
 echo "Determining local IP address"
@@ -26,7 +31,8 @@ apt-get install -y \
     software-properties-common \
     jq \
     unzip \
-    dnsmasq
+    dnsmasq \
+	gdebi
 
 echo "Enabling *.service.consul resolution system wide"
 cat << EODMCF >/etc/dnsmasq.d/10-consul
@@ -85,21 +91,25 @@ sudo echo '{"service": {"name": "mysql-master", "tags": ["mysql-master"], "port"
 systemctl daemon-reload
 systemctl start consul
 
+sudo apt-get update
+sudo rm -rf /var/lib/dpkg/lock
+sudo rm -rf /var/lib/dpkg/lock-frontend
+sudo rm -rf /var/cache/apt/archives/lock
+sudo rm -rf /var/cache/debconf/config.dat
+
+
 # Install and define mysql
 wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
 sudo dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
 sudo apt-get update
-dbpass=""
+export MYSQL_ROOT_PASSWORD=
 export DEBIAN_FRONTEND=noninteractive
-echo percona-server-server-5.7 percona-server-server/root_password password $dbpass | sudo debconf-set-selections
-echo percona-server-server-5.7 percona-server-server/root_password_again password $dbpass | sudo debconf-set-selections
-sudo apt-get -y install percona-server-server-5.7
+echo "percona-server-server-5.7 percona-server-server-5.7/root-pass password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
+echo "percona-server-server-5.7 percona-server-server-5.7/re-root-pass password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
+apt install -y percona-server-server-5.7 percona-server-client-5.7
 rm -rf percona-release_latest.$(lsb_release -sc)_all.deb
-apt-get install -y curl jq
-apt-get install -y gdebi  
 sudo bash -c "echo bind-address = ${LOCAL_IPV4} >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
-sudo service mysql stop
-sudo service mysql start
+sudo service mysql restart
 sudo mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '11111';" 
 sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
 sudo mysql -e "CREATE DATABASE spree;"

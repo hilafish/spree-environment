@@ -26,7 +26,7 @@
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
           <url>git@github.com:hila3000/spree-project.git</url>
-          <credentialsId>5e21f326-05e0-492a-a978-00145f393850</credentialsId>
+          <credentialsId>jenkins_ssh_key</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>

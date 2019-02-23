@@ -19,7 +19,7 @@ How to use this repository and install a fully working environment with dummy ex
 
 5. `terraform apply -var 'aws_access_key=access_key_here' -var 'aws_secret_key=secret_key_here' -var 'aws_private_key_path=path_to_private_key_here' -var 'aws_key_name=key_pair_name_here' -var 'vault_pass=vault_pass' --auto-approve`
 
-***NOTE (reminder)***: region = "us-west-2". If you would like to use other region, change it in the ec2.tf file.
+***NOTE***: region = "us-west-2". If you would like to use other region, change it in the ec2.tf file.
 
 6. Wait and watch the magic happen or go do some other stuff :)
 

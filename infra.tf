@@ -46,7 +46,8 @@ resource "aws_instance" "elastic_search" {
   tags {
     Name = "elastic_search"
   }
-    user_data = "${data.template_file.elasticsearch-userdata.rendered}"
+  
+  user_data     = "${data.template_file.elasticsearch-userdata.rendered}"
 } 
 
 
@@ -90,4 +91,8 @@ output "k8s_master_public_dns" {
 
 output "minions_public_dns" {
     value = "${aws_instance.k8s_minion.*.public_dns}"
+}
+
+output "elastic_public_ip" {
+  value = "${aws_instance.elastic_search.public_ip}"
 }

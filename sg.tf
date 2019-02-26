@@ -12,6 +12,13 @@ resource "aws_security_group" "k8s-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
   # outbound internet access
   egress {
     from_port   = 0
@@ -70,6 +77,13 @@ resource "aws_security_group" "MySQL-sg" {
     cidr_blocks = ["37.142.210.45/32"]
   }  
 
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
   # outbound internet access
   egress {
     from_port   = 0
@@ -98,6 +112,13 @@ resource "aws_security_group" "consul-sg" {
     protocol    = "tcp"
     cidr_blocks = ["37.142.210.45/32"]
   }  
+
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   
   # outbound internet access
   egress {
@@ -116,6 +137,13 @@ resource "aws_security_group" "elastic-search-sg" {
   ingress {
     from_port   = 9200
     to_port     = 9200
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -168,6 +196,13 @@ resource "aws_security_group" "jenkins-sg" {
     protocol    = "tcp"
     cidr_blocks = ["37.142.210.45/32"]
   }  
+
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   
   ingress {
     from_port   = 22

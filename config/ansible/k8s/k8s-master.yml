@@ -8,8 +8,11 @@
       include_vars: vars.yml
      
     - name: add jenkins public key to authorized hosts
-      shell: {{ jenkins_public_ssh_key }} >> /home/ubuntu/.ssh/authorized_keys
- 
+      blockinfile:
+        path: /home/ubuntu/.ssh/authorized_keys
+        block: |
+          {{ jenkins_public_ssh_key }}
+          
     - name: get hostname
       shell: hostname -f 2>/dev/null || curl http://169.254.169.254/latest/meta-data/local-hostname
       register: ec2_host_name

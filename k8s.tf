@@ -99,7 +99,9 @@ provisioner "remote-exec" {
 	  "kubectl create -f /tmp/my-secret.yaml",
 	  "shred -v -n 25 -u -z /tmp/my-secret.yaml"
     ]
-  }  
+  } 
+
+  user_data = "${data.template_file.k8s-master-userdata.rendered}"  
 }
 
 
@@ -171,5 +173,7 @@ provisioner "remote-exec" {
 	  "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
 	  "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-minion.yml"
     ]
-  }  
+  } 
+  
+  user_data = "${data.template_file.k8s-minion-userdata.rendered}"    
 }

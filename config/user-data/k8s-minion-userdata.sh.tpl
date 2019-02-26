@@ -36,16 +36,6 @@ sudo add-apt-repository \
    stable"
 
 sudo apt-get update
-sudo apt-get install -y docker-ce
-
-echo "Configuring Docker to use local DNSMasq for DNS resolution (Enabling *.service.consul resolutions inside containers)"
-cat << EODDCF >/etc/docker/daemon.json
-{
-  "dns": ["${LOCAL_IPV4}"]
-}
-EODDCF
-
-systemctl restart docker.service
 
 echo "Enabling *.service.consul resolution system wide"
 cat << EODMCF >/etc/dnsmasq.d/10-consul
@@ -99,19 +89,26 @@ Type=notify
 WantedBy=multi-user.target
 EOCSU
 
-
-
-sudo docker pull hila3000/dummy_exporter:3.0
-sudo docker run -v /tmp:/tmp -it -d -p 65433:65433 hila3000/dummy_exporter:3.0 start
-sleep 10
-curl http://localhost:65433
-
-sudo echo '{"service": {"name": "dummy_exporter", "tags": ["dummy-exporter"], "port": 65433}}' >> /etc/consul.d/dummy-exporter.json
+cat << EOCSU >/etc/consul.d/k8s-minion.json
+{"service": {
+    "name": "k8s_minion",
+    "tags": ["k8s_minion", "k8s"], 
+    "port": 22, 
+    "check": {
+	    "id": "ssh"
+        "name": "ssh",
+        "tcp": "localhost:22",
+        "interval": "10s",
+		"timeout": "1s"
+        }
+    }
+}
+EOCSU
 
 systemctl daemon-reload
 systemctl start consul
 
-# remote exec originally
+# Install Filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.5.4-amd64.deb
 sudo dpkg -i filebeat-6.5.4-amd64.deb
 sleep 60
@@ -121,6 +118,31 @@ echo 'filebeat.inputs:
     - /tmp/*.log
 
 output.elasticsearch:
-  hosts: ["${elastic_search_private_ip}:9200"]' > /etc/filebeat/filebeat.yml
+  hosts: ["elasticsearch.service.consul:9200"]' > /etc/filebeat/filebeat.yml
 sudo chown root:root /etc/filebeat/filebeat.yml
 sudo service filebeat restart
+
+
+# Install Node Exporter
+sudo useradd --no-create-home --shell /bin/false node_exporter
+curl -LO https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-amd64.tar.gz
+tar xzvf node_exporter-0.16.0.linux-amd64.tar.gz
+sudo mv node_exporter-0.16.0.linux-amd64/node_exporter /usr/local/bin
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+rm -rf node_exporter-0.16.0.linux-amd64.tar.gz node_exporter-0.16.0.linux-amd64
+sudo echo '[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter

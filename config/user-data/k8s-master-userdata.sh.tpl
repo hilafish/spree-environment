@@ -11,11 +11,6 @@ export TERM=xterm-256color
 export DEBIAN_FRONTEND=noninteractive
 export DATACENTER_NAME="OpsSchool"
 
-sudo rm -rf /var/lib/dpkg/lock
-sudo rm -rf /var/lib/dpkg/lock-frontend
-sudo rm -rf /var/cache/apt/archives/lock
-sudo rm -rf /var/cache/debconf/config.dat
-
 
 #Bringing the Information
 echo "Determining local IP address"
@@ -31,8 +26,16 @@ apt-get install -y \
     software-properties-common \
     jq \
     unzip \
-    dnsmasq \
-	gdebi
+    dnsmasq
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+sudo apt-get update
 
 echo "Enabling *.service.consul resolution system wide"
 cat << EODMCF >/etc/dnsmasq.d/10-consul
@@ -86,47 +89,39 @@ Type=notify
 WantedBy=multi-user.target
 EOCSU
 
-sudo echo '{"service": {"name": "mysql-master", "tags": ["mysql-master"], "port": 3306}}' >> /etc/consul.d/mysql-master.json
+cat << EOCSU >/etc/consul.d/k8s-master.json
+{"service": {
+    "name": "k8s_master",
+    "tags": ["k8s_master", "k8s"], 
+    "port": 6443, 
+    "check": {
+	    "id": "k8s_master"
+        "name": "k8s_master port",
+        "tcp": "localhost:6443",
+        "interval": "10s",
+		"timeout": "1s"
+        }
+    }
+}
+EOCSU
 
 systemctl daemon-reload
 systemctl start consul
 
-sudo apt-get update
-sudo rm -rf /var/lib/dpkg/lock
-sudo rm -rf /var/lib/dpkg/lock-frontend
-sudo rm -rf /var/cache/apt/archives/lock
-sudo rm -rf /var/cache/debconf/config.dat
-
-
-# Install and define mysql
-wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
-sudo dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
-sudo apt-get update
-export MYSQL_ROOT_PASSWORD=
-export DEBIAN_FRONTEND=noninteractive
-echo "percona-server-server-5.7 percona-server-server-5.7/root-pass password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
-echo "percona-server-server-5.7 percona-server-server-5.7/re-root-pass password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
-apt install -y percona-server-server-5.7 percona-server-client-5.7
-rm -rf percona-release_latest.$(lsb_release -sc)_all.deb
-sudo bash -c "echo bind-address = ${LOCAL_IPV4} >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
-sudo service mysql restart 
-sudo mysql -e "CREATE DATABASE spree;"
-sudo mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '11111';" 
-sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
-
-# Install filebeat
+# Install Filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.5.4-amd64.deb
 sudo dpkg -i filebeat-6.5.4-amd64.deb
 sleep 60
 echo 'filebeat.inputs:
 - type: log
   paths:
-    - /var/log/messages
+    - /tmp/*.log
 
-output.logstash:
-  hosts: ["logstash.service.consul:5044"]' > /etc/filebeat/filebeat.yml
+output.elasticsearch:
+  hosts: ["elasticsearch.service.consul:9200"]' > /etc/filebeat/filebeat.yml
 sudo chown root:root /etc/filebeat/filebeat.yml
 sudo service filebeat restart
+
 
 # Install Node Exporter
 sudo useradd --no-create-home --shell /bin/false node_exporter
@@ -135,7 +130,7 @@ tar xzvf node_exporter-0.16.0.linux-amd64.tar.gz
 sudo mv node_exporter-0.16.0.linux-amd64/node_exporter /usr/local/bin
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 rm -rf node_exporter-0.16.0.linux-amd64.tar.gz node_exporter-0.16.0.linux-amd64
-echo '[Unit]
+sudo echo '[Unit]
 Description=Node Exporter
 Wants=network-online.target
 After=network-online.target
@@ -151,4 +146,3 @@ WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
 sudo systemctl daemon-reload
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
-

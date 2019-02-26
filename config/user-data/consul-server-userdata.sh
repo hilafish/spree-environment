@@ -80,3 +80,43 @@ EOCSU
 
 systemctl daemon-reload
 systemctl start consul
+
+
+# Install Filebeat
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.5.4-amd64.deb
+sudo dpkg -i filebeat-6.5.4-amd64.deb
+sleep 60
+echo 'filebeat.inputs:
+- type: log
+  paths:
+    - /tmp/*.log
+
+output.elasticsearch:
+  hosts: ["elastic.service.consul:9200"]' > /etc/filebeat/filebeat.yml
+sudo chown root:root /etc/filebeat/filebeat.yml
+sudo service filebeat restart
+
+
+# Install Node Exporter
+sudo useradd --no-create-home --shell /bin/false node_exporter
+curl -LO https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-amd64.tar.gz
+tar xzvf node_exporter-0.16.0.linux-amd64.tar.gz
+sudo mv node_exporter-0.16.0.linux-amd64/node_exporter /usr/local/bin
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+rm -rf node_exporter-0.16.0.linux-amd64.tar.gz node_exporter-0.16.0.linux-amd64
+sudo echo '[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter

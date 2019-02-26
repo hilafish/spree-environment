@@ -15,17 +15,17 @@ resource "aws_instance" "jenkins" {
     Name = "jenkins"
     }
 	
-provisioner "file" {
+  provisioner "file" {
     source      = "${path.module}/config/ansible/jenkins"
     destination = "/tmp"
   }
 
-provisioner "file" {
+  provisioner "file" {
     source      = "${path.module}/config/mysql/spree_all.sql"
     destination = "/tmp/spree_all.sql"
   }
   
-provisioner "remote-exec" {
+  provisioner "remote-exec" {
     inline = [
       "sleep 30",
       "sudo apt-get update",
@@ -37,11 +37,13 @@ provisioner "remote-exec" {
       "chmod 400 /tmp/ansible_vault_pass",
       "sudo mv /tmp/jenkins /etc/ansible/playbooks/",
       "PUBLIC_IP=$(curl \"http://169.254.169.254/latest/meta-data/public-ipv4\")",
-      "sudo sed -i \"s/127.0.0.1/$${PUBLIC_IP}/g\" /etc/ansible/playbooks/jenkins/jenkins-deploy.yml /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
+      "sudo sed -i \"s/127.0.0.1/$${PUBLIC_IP}/g\" /etc/ansible/playbooks/jenkins/jenkins-configs/github-plugin-configuration.xml",
       "ansible-playbook --connection=local --vault-password-file=/tmp/ansible_vault_pass --inventory 127.0.0.1 /etc/ansible/playbooks/jenkins/jenkins-deploy.yml",
       "sudo shred -v -n 25 -u -z /tmp/ansible_vault_pass"
     ]
-  }  
+  }
+
+  user_data = "${data.template_file.jenkins-userdata.rendered}"  
 }
 
 

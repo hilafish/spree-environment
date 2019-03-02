@@ -2155,6 +2155,11 @@
           },
           {
             "selected": false,
+            "text": "MySQL_Slave",
+            "value": "MySQL_Slave"
+          },		  
+          {
+            "selected": false,
             "text": "consul-server",
             "value": "consul-server"
           },

@@ -53,6 +53,14 @@ data "template_file" "k8s-master-userdata" {
 }
 
 
+data "template_file" "k8s-secret" {
+  template = "${file("${path.module}/config/k8s/my-secret.yaml.tpl")}"
+
+  vars {
+	K8S_SECRET                = "${var.k8s_secret}"
+	}
+}
+
 data "template_file" "k8s-minion-userdata" {
   template = "${file("${path.module}/config/user-data/k8s-minion-userdata.sh.tpl")}"
 
@@ -84,38 +92,9 @@ data "template_file" "kibana_grafana-userdata" {
 
   vars {
     LOCAL_IPV4 = "$${LOCAL_IPV4}"
-    elastic_search_private_ip = "${aws_instance.elastic_search.private_ip}"
     CHECKPOINT_URL            = "https://checkpoint-api.hashicorp.com/v1/check"
     LOCAL_IPV4                = "$${LOCAL_IPV4}"
     CONSUL_VERSION            = "$${CONSUL_VERSION}"
     DATACENTER_NAME           = "OpsSchool"	
   }
 }
-
-#data "template_file" "base-server-userdata" {
-#  template = "${file("${path.module}/config/user-data/base-server-userdata.sh.tpl")}"
-#
-#  vars {
-#    CHECKPOINT_URL            = "https://checkpoint-api.hashicorp.com/v1/check"
-#    LOCAL_IPV4                = "$${LOCAL_IPV4}"
-#    CONSUL_VERSION            = "$${CONSUL_VERSION}"
-#    DATACENTER_NAME           = "OpsSchool"
-#  }
-#}
-
-#data "template_cloudinit_config" "elasticsearch" {
-#  gzip          = true
-#  base64_encode = true
-#  
-#  # get first user_data
-#  part {
-#    content_type = "text/cloud-config"
-#    content      = "${data.template_file.base-server-userdata.rendered}"
-#  }
-#
-#  # get second user_data - works without vars
-#  part {
-#    content_type = "text/x-shellscript"
-#    content      = "${data.template_file.elasticsearch-userdata.rendered}"
-#  }
-#}

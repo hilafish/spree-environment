@@ -28,6 +28,7 @@ variable "aws_region" {
 
 variable "vault_pass" {}
 
+variable "k8s_secret" {}
 
 variable "bastion_key_name" {
   description = "bastion key name"

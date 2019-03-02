@@ -54,7 +54,7 @@ echo latest_version=$(python deploy_spree.py --latest_version yes) &gt; variable
                   <noDefaultExcludes>false</noDefaultExcludes>
                   <makeEmptyDirs>false</makeEmptyDirs>
                   <patternSeparator>[, ]+</patternSeparator>
-                  <execCommand>sed -i &quot;s@image: .*@image: ${latest_version}@&quot;  /tmp/deploy.yaml</execCommand>
+                  <execCommand>sed -i &quot;s@image: .*@image: ${latest_version}@&quot;  /tmp/k8s/deploy.yaml</execCommand>
                   <execTimeout>120000</execTimeout>
                   <usePty>false</usePty>
                   <useAgentForwarding>false</useAgentForwarding>
@@ -70,7 +70,7 @@ echo latest_version=$(python deploy_spree.py --latest_version yes) &gt; variable
                   <noDefaultExcludes>false</noDefaultExcludes>
                   <makeEmptyDirs>false</makeEmptyDirs>
                   <patternSeparator>[, ]+</patternSeparator>
-                  <execCommand>kubectl apply -f /tmp/deploy.yaml</execCommand>
+                  <execCommand>kubectl apply -f /tmp/k8s/deploy.yaml</execCommand>
                   <execTimeout>120000</execTimeout>
                   <usePty>false</usePty>
                   <useAgentForwarding>false</useAgentForwarding>

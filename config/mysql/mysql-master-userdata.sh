@@ -93,8 +93,8 @@ cat << EOCSU >/etc/consul.d/mysql-master.json
     "tags": ["mysql-master"], 
     "port": 3306, 
     "check": {
-	    "id": "mysql-health",
-        "name": "mysql TCP health",
+	    "id": "mysql-master-health",
+        "name": "mysql-master TCP health",
         "tcp": "${LOCAL_IPV4}:3306",
         "interval": "10s",
 		"timeout": "1s"
@@ -104,12 +104,12 @@ cat << EOCSU >/etc/consul.d/mysql-master.json
 EOCSU
 
 
-cat << EOCSU >/etc/consul.d/mysql-metrics.json
+cat << EOCSU >/etc/consul.d/mysql-master-metrics.json
 {
   "service": {
-    "name": "mysql-metrics",
+    "name": "mysql-master-metrics",
     "port": 9100,
-    "tags":  ["mysql-metrics", "metrics"],
+    "tags":  ["mysql-master-metrics", "metrics"],
      "check": {
         "id": "node_exporter_health_check",
         "name": "node_exporter_port_check",
@@ -142,6 +142,8 @@ echo "percona-server-server-5.7 percona-server-server-5.7/re-root-pass password 
 sudo apt install -y percona-server-server-5.7 percona-server-client-5.7
 rm -rf percona-release_latest.$(lsb_release -sc)_all.deb
 sudo bash -c "echo bind-address = ${LOCAL_IPV4} >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
+sudo bash -c "echo server-id=1 >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
+sudo bash -c "echo log-bin=/var/lib/mysql/mysql-bin >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
 sudo service mysql restart 
 sleep 30
 sudo mysql -e "CREATE DATABASE spree;"

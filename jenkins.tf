@@ -21,11 +21,6 @@ resource "aws_instance" "jenkins" {
     source      = "${path.module}/config/ansible/jenkins"
     destination = "/tmp"
   }
-
-  provisioner "file" {
-    source      = "${path.module}/config/mysql/spree_all.sql"
-    destination = "/tmp/spree_all.sql"
-  }
   
   provisioner "remote-exec" {
     inline = [

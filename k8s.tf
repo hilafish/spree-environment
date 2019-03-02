@@ -23,50 +23,80 @@ resource "aws_instance" "k8s_master" {
 	"kubernetes.io/cluster/kubernetes" = "owned"
     }
 	
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/install-docker.yml"
-    destination = "/tmp/install-docker.yml"
-  }
+  provisioner "file" {
+    source     = "${path.module}/config/ansible/k8s/common"
+    destination = "/tmp"
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }	
+  } 
 
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/k8s-common.yml"
-    destination = "/tmp/k8s-common.yml"
-  }
-
-provisioner "file" {
+  provisioner "file" {
     source      = "${path.module}/config/ansible/k8s/k8s-master.yml"
     destination = "/tmp/k8s-master.yml"
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }	
   }
 
-provisioner "file" {
-    source      = "${path.module}/config/k8s/service.yaml"
-    destination = "/tmp/service.yaml"
+  provisioner "file" {
+    source     = "${path.module}/config/k8s"
+    destination = "/tmp"
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }	
   }
 
-provisioner "file" {
-    source      = "${path.module}/config/k8s/deploy.yaml"
-    destination = "/tmp/deploy.yaml"
-  }
+  provisioner "file" {
+    content     = "${data.template_file.k8s-secret.rendered}"
+    destination = "/tmp/secret.yaml"
 
-
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/kubeadm.yaml.j2"
-    destination = "/tmp/kubeadm.yaml.j2"
-  }
-
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/20-cloud-provider.conf"
-    destination = "/tmp/20-cloud-provider.conf"
-  }
-
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/kubelet"
-    destination = "/tmp/kubelet"
-  }
-
-provisioner "file" {
-    source      = "${path.module}/config/k8s/my-secret.yaml"
-    destination = "/tmp/my-secret.yaml"
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }
   }
   
 provisioner "file" {
@@ -78,6 +108,20 @@ jenkins_public_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRf/6fsLlZVA1H1Tx
                 EOF
 				
     destination = "/tmp/vars.yml"
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }	
 }
 
 provisioner "remote-exec" {
@@ -88,17 +132,31 @@ provisioner "remote-exec" {
       "sudo pip install ansible",
       "sudo apt-get update",
       "sudo mkdir -p /etc/ansible/playbooks",
-      "sudo mv /tmp/k8s-master.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/kubeadm.yaml.j2 /tmp/install-docker.yml /tmp/20-cloud-provider.conf /tmp/kubelet /etc/ansible/playbooks/",
+      "sudo mv /tmp/k8s-master.yml /tmp/common/* /tmp/vars.yml /etc/ansible/playbooks/",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-master.yml",
 	  "sleep 60",
-	  "kubectl create -f /tmp/my-secret.yaml",	  
-	  "kubectl create -f /tmp/deploy.yaml",
+	  "kubectl create -f /tmp/secret.yaml",	  
+	  "kubectl create -f /tmp/k8s/deploy.yaml",
 	  "sleep 30",
-	  "kubectl create -f /tmp/service.yaml",
-	  "shred -v -n 25 -u -z /tmp/my-secret.yaml"
+	  "kubectl create -f /tmp/k8s/service.yaml",
+	  "shred -v -n 25 -u -z /tmp/secret.yaml"
     ]
+
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+      } 	
   } 
 
   user_data = "${data.template_file.k8s-master-userdata.rendered}"  
@@ -125,40 +183,68 @@ resource "aws_instance" "k8s_minion" {
 	"kubernetes.io/cluster/kubernetes" = "owned"
     }
 	
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/install-docker.yml"
-    destination = "/tmp/install-docker.yml"
-  }
+  provisioner "file" {
+    source     = "${path.module}/config/ansible/k8s/common"
+    destination = "/tmp"
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }	
+  } 
 
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/k8s-common.yml"
-    destination = "/tmp/k8s-common.yml"
-  }
 
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/k8s-minion.yml"
-    destination = "/tmp/k8s-minion.yml"
-  }
-
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/20-cloud-provider.conf"
-    destination = "/tmp/20-cloud-provider.conf"
-  }
+  provisioner "file" {
+      source      = "${path.module}/config/ansible/k8s/k8s-minion.yml"
+      destination = "/tmp/k8s-minion.yml"
+	  
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }		  
+  }  
   
-provisioner "file" {
-    source      = "${path.module}/config/ansible/k8s/kubelet"
-    destination = "/tmp/kubelet"
-  }
-  
-provisioner "file" {
-    content = <<EOF
+  provisioner "file" {
+      content = <<EOF
 ---
 kubeadm_token: "gqv3y0.91c3dhvt24c2s63h"
 k8s_master_ip: "${aws_instance.k8s_master.private_ip}"
-                EOF
+                  EOF
 				
     destination = "/tmp/vars.yml"
-  }
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+    }		
+ }
 
 provisioner "remote-exec" {
     inline = [
@@ -168,11 +254,25 @@ provisioner "remote-exec" {
 	  "sudo pip install ansible",
       "sudo apt-get update",
 	  "sudo mkdir -p /etc/ansible/playbooks",
-	  "sudo mv /tmp/k8s-minion.yml /tmp/k8s-common.yml /tmp/vars.yml /tmp/install-docker.yml /tmp/20-cloud-provider.conf /tmp/kubelet /etc/ansible/playbooks/",
+	  "sudo mv /tmp/k8s-minion.yml /tmp/common/* /tmp/vars.yml /etc/ansible/playbooks/",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
 	  "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
 	  "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-minion.yml"
     ]
+	
+    connection {
+        type = "ssh"   
+        host = "${self.private_ip}" 
+        user = "ubuntu"	  
+        private_key = "${file(var.aws_private_key_path)}"
+  	    timeout = "1m"
+  	    agent = false
+     
+        bastion_host = "${aws_instance.bastion.public_ip}"
+  	    bastion_port = 22
+        bastion_user = "ubuntu"
+        bastion_private_key = "${file(var.aws_private_key_path)}"
+      } 	
   } 
   
   user_data = "${data.template_file.k8s-minion-userdata.rendered}"    

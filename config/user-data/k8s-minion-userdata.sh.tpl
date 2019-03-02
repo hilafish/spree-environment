@@ -63,6 +63,16 @@ sudo add-apt-repository \
    stable"
 
 sudo apt-get update
+apt-get install -y docker-ce
+
+echo "Configuring Docker to use local DNSMasq for DNS resolution (Enabling *.service.consul resolutions inside containers)"
+cat << EODDCF >/etc/docker/daemon.json
+{
+  "dns": ["${LOCAL_IPV4}"]
+}
+EODDCF
+
+systemctl restart docker.service
 
 echo "Enabling *.service.consul resolution system wide"
 cat << EODMCF >/etc/dnsmasq.d/10-consul

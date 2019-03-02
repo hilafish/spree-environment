@@ -1,32 +1,5 @@
 #!/bin/bash
 
-apt-get update
-
-# Install Node Exporter
-sudo useradd --no-create-home --shell /bin/false node_exporter
-curl -LO https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-amd64.tar.gz
-tar xzvf node_exporter-0.16.0.linux-amd64.tar.gz
-sudo mv node_exporter-0.16.0.linux-amd64/node_exporter /usr/local/bin
-sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
-rm -rf node_exporter-0.16.0.linux-amd64.tar.gz node_exporter-0.16.0.linux-amd64
-sudo echo '[Unit]
-Description=Node Exporter
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-User=node_exporter
-Group=node_exporter
-Type=simple
-ExecStart=/usr/local/bin/node_exporter
-
-[Install]
-WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
-sudo systemctl daemon-reload
-sudo systemctl enable node_exporter
-sudo systemctl start node_exporter
-
-
 # This script is intended to install Consul client
 # on Ubuntu 16.04 Xenial managed by SystemD
 # including docker and DnsMasq for *.service.consul DNS resolving
@@ -38,6 +11,10 @@ export TERM=xterm-256color
 export DEBIAN_FRONTEND=noninteractive
 export DATACENTER_NAME="OpsSchool"
 
+sudo rm -rf /var/lib/dpkg/lock
+sudo rm -rf /var/lib/dpkg/lock-frontend
+sudo rm -rf /var/cache/apt/archives/lock
+sudo rm -rf /var/cache/debconf/config.dat
 
 #Bringing the Information
 echo "Determining local IP address"
@@ -53,26 +30,8 @@ apt-get install -y \
     software-properties-common \
     jq \
     unzip \
-    dnsmasq
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-
-sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-
-sudo apt-get update
-apt-get install -y docker-ce
-
-echo "Configuring Docker to use local DNSMasq for DNS resolution (Enabling *.service.consul resolutions inside containers)"
-cat << EODDCF >/etc/docker/daemon.json
-{
-  "dns": ["${LOCAL_IPV4}"]
-}
-EODDCF
-
-systemctl restart docker.service
+    dnsmasq \
+	gdebi
 
 echo "Enabling *.service.consul resolution system wide"
 cat << EODMCF >/etc/dnsmasq.d/10-consul
@@ -126,16 +85,17 @@ Type=notify
 WantedBy=multi-user.target
 EOCSU
 
-cat << EOCSU >/etc/consul.d/k8s-master.json
+
+cat << EOCSU >/etc/consul.d/mysql-slave.json
 {
   "service": {
-    "name": "k8s_master",
-    "tags": ["k8s_master", "k8s"], 
-    "port": 6443, 
+    "name": "mysql-slave",
+    "tags": ["mysql-slave"], 
+    "port": 3306, 
     "check": {
-	    "id": "k8s_master",
-        "name": "k8s_master port",
-        "tcp": "localhost:6443",
+	    "id": "mysql-slave-health",
+        "name": "mysql-slave TCP health",
+        "tcp": "${LOCAL_IPV4}:3306",
         "interval": "10s",
 		"timeout": "1s"
         }
@@ -144,12 +104,12 @@ cat << EOCSU >/etc/consul.d/k8s-master.json
 EOCSU
 
 
-cat << EOCSU >/etc/consul.d/k8s-master-metrics.json
+cat << EOCSU >/etc/consul.d/mysql-slave-metrics.json
 {
   "service": {
-    "name": "k8s-master-metrics",
+    "name": "mysql-slave-metrics",
     "port": 9100,
-    "tags":  ["k8s-master-metrics", "metrics"],
+    "tags":  ["mysql-slave-metrics", "metrics"],
      "check": {
         "id": "node_exporter_health_check",
         "name": "node_exporter_port_check",
@@ -164,7 +124,57 @@ EOCSU
 systemctl daemon-reload
 systemctl start consul
 
-# Install Filebeat
+# Install and define mysql
+sudo apt-get update
+sudo rm -rf /var/lib/dpkg/lock
+sudo rm -rf /var/lib/dpkg/lock-frontend
+sudo rm -rf /var/cache/apt/archives/lock
+sudo rm -rf /var/cache/debconf/config.dat
+
+wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
+sudo dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
+sudo apt-get update
+export MYSQL_ROOT_PASSWORD=
+export DEBIAN_FRONTEND=noninteractive
+echo "percona-server-server-5.7 percona-server-server-5.7/root-pass password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
+echo "percona-server-server-5.7 percona-server-server-5.7/re-root-pass password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
+sudo apt install -y percona-server-server-5.7 percona-server-client-5.7
+rm -rf percona-release_latest.$(lsb_release -sc)_all.deb
+sudo bash -c "echo bind-address = ${LOCAL_IPV4} >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
+sudo bash -c "echo server-id=2 >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
+sudo bash -c "echo relay_log=/var/lib/mysql/relay-log >> /etc/mysql/percona-server.conf.d/mysqld.cnf"
+sudo service mysql restart 
+sudo mysql -e "CREATE DATABASE spree;"
+sudo mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '11111';" 
+sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';"
+
+
+# Install Node Exporter
+sudo useradd --no-create-home --shell /bin/false node_exporter
+curl -LO https://github.com/prometheus/node_exporter/releases/download/v0.16.0/node_exporter-0.16.0.linux-amd64.tar.gz
+tar xzvf node_exporter-0.16.0.linux-amd64.tar.gz
+sudo mv node_exporter-0.16.0.linux-amd64/node_exporter /usr/local/bin
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+rm -rf node_exporter-0.16.0.linux-amd64.tar.gz node_exporter-0.16.0.linux-amd64
+echo '[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter
+
+
+# Install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.6.1-amd64.deb
 sudo dpkg -i filebeat-6.6.1-amd64.deb
 sleep 60

@@ -40,6 +40,7 @@ data "template_file" "jenkins-userdata" {
   }
 }
 
+
 data "template_file" "k8s-master-userdata" {
   template = "${file("${path.module}/config/user-data/k8s-master-userdata.sh.tpl")}"
 
@@ -51,6 +52,7 @@ data "template_file" "k8s-master-userdata" {
   }
 }
 
+
 data "template_file" "k8s-minion-userdata" {
   template = "${file("${path.module}/config/user-data/k8s-minion-userdata.sh.tpl")}"
 
@@ -59,6 +61,34 @@ data "template_file" "k8s-minion-userdata" {
     LOCAL_IPV4                = "$${LOCAL_IPV4}"
     CONSUL_VERSION            = "$${CONSUL_VERSION}"
     DATACENTER_NAME           = "OpsSchool"
+  }
+}
+
+
+data "template_file" "prometheus-userdata" {
+  template = "${file("${path.module}/config/user-data/prometheus-userdata.sh.tpl")}"
+
+  vars {
+    CHECKPOINT_URL            = "https://checkpoint-api.hashicorp.com/v1/check"
+    LOCAL_IPV4                = "$${LOCAL_IPV4}"
+    CONSUL_VERSION            = "$${CONSUL_VERSION}"
+    DATACENTER_NAME           = "OpsSchool"
+	EC2_ACCESS_KEY            = "${var.prom_scraping_ec2_access_key}"
+	EC2_SECRET_KEY            = "${var.prom_scraping_ec2_secret_key}"
+	}
+}
+
+
+data "template_file" "kibana_grafana-userdata" {
+  template = "${file("${path.module}/config/user-data/kibana_grafana-userdata.sh.tpl")}"
+
+  vars {
+    LOCAL_IPV4 = "$${LOCAL_IPV4}"
+    elastic_search_private_ip = "${aws_instance.elastic_search.private_ip}"
+    CHECKPOINT_URL            = "https://checkpoint-api.hashicorp.com/v1/check"
+    LOCAL_IPV4                = "$${LOCAL_IPV4}"
+    CONSUL_VERSION            = "$${CONSUL_VERSION}"
+    DATACENTER_NAME           = "OpsSchool"	
   }
 }
 

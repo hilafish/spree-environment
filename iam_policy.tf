@@ -138,7 +138,7 @@ resource "aws_iam_policy_attachment" "consul-server-iam-policy-attachment" {
   policy_arn = "${aws_iam_policy.consul-server-iam-policy.arn}"
 }
 
-resource "aws_iam_policy_attachment" "k8s-k8s-iam-policy-attachment" {
+resource "aws_iam_policy_attachment" "k8s-iam-policy-attachment" {
   name  = "k8s_iam_policy_attachment"
   roles      = ["${aws_iam_role.k8s-iam-role.name}"]
   policy_arn = "${aws_iam_policy.k8s-iam-policy.arn}"

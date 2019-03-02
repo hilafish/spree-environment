@@ -78,6 +78,13 @@ resource "aws_security_group" "MySQL-sg" {
   }  
 
   ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["172.31.0.0/16"]
+  } 
+  
+  ingress {
     from_port   = 9100
     to_port     = 9100
     protocol    = "tcp"
@@ -119,6 +126,28 @@ resource "aws_security_group" "consul-sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "bastion-sg" {
+  name   = "bastion_sg"
+# vpc_id = "${aws_vpc.Custom-VPC.id}"
+
+  # access from anywhere
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }  
   
   # outbound internet access
   egress {
@@ -210,6 +239,83 @@ resource "aws_security_group" "jenkins-sg" {
     protocol    = "tcp"
     cidr_blocks = ["37.142.210.45/32"]
   }  
+  
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_security_group" "prometheus-sg" {
+  name   = "prometheus_sg"
+#  vpc_id = "${aws_vpc.Custom-VPC.id}"
+
+  # access from anywhere
+  ingress {
+    from_port   = 9090
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8300
+    to_port     = 8600
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }
+  
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_security_group" "kibana-grafana-sg" {
+  name   = "kibana_grafana_sg"
+#  vpc_id = "${aws_vpc.Custom-VPC.id}"
+
+  # access from anywhere
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 5601
+    to_port     = 5601
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["37.142.210.45/32"]
+  }
   
   # outbound internet access
   egress {

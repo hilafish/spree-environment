@@ -4,5 +4,5 @@ datasources:
    type: prometheus
    access: proxy
    orgId: 1
-   url: http://${prometheus_private_ip}:9090
+   url: http://prometheus.service.consul:9090
    isDefault: yes

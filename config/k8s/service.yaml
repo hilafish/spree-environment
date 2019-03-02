@@ -12,5 +12,4 @@ spec:
     protocol: TCP
   selector:
     app: spree-app
-    version: "3.0"
   type: LoadBalancer

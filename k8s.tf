@@ -11,7 +11,7 @@ resource "aws_instance" "k8s_master" {
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.aws-iam-k8s-instance-profile.name}"
-  depends_on                  = ["aws_instance.MySQL_Master"]
+  depends_on                  = ["aws_instance.consul_server","aws_instance.MySQL_Master"]
   
   connection {
     user        = "ubuntu"
@@ -92,11 +92,11 @@ provisioner "remote-exec" {
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/install-docker.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-common.yml",
       "ansible-playbook --connection=local --inventory 127.0.0.1 /etc/ansible/playbooks/k8s-master.yml",
-	  "sudo mv /tmp/deploy.yaml /tmp/service.yaml /etc/kubernetes",
 	  "sleep 60",
-	  "kubectl create -f /etc/kubernetes/deploy.yaml",
-	  "kubectl create -f /etc/kubernetes/service.yaml",
-	  "kubectl create -f /tmp/my-secret.yaml",
+	  "kubectl create -f /tmp/my-secret.yaml",	  
+	  "kubectl create -f /tmp/deploy.yaml",
+	  "sleep 30",
+	  "kubectl create -f /tmp/service.yaml",
 	  "shred -v -n 25 -u -z /tmp/my-secret.yaml"
     ]
   } 
@@ -108,12 +108,12 @@ provisioner "remote-exec" {
 resource "aws_instance" "k8s_minion" {
   count                       = 2
   ami                         = "${data.aws_ami.ubuntu.id}"
-  instance_type               = "t2.micro"
+  instance_type               = "t2.medium"
   vpc_security_group_ids      = ["${aws_security_group.k8s-sg.id}"]
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.aws-iam-k8s-instance-profile.name}"
-  depends_on                  = ["aws_instance.MySQL_Master"]
+  depends_on                  = ["aws_instance.consul_server","aws_instance.MySQL_Master"]
   
   connection {
     user        = "ubuntu"
@@ -155,7 +155,7 @@ provisioner "file" {
 ---
 kubeadm_token: "gqv3y0.91c3dhvt24c2s63h"
 k8s_master_ip: "${aws_instance.k8s_master.private_ip}"
-EOF
+                EOF
 				
     destination = "/tmp/vars.yml"
   }

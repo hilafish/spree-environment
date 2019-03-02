@@ -1,3 +1,4 @@
+
 resource "aws_instance" "jenkins" {
   ami                         = "${data.aws_ami.ubuntu.id}"
   instance_type               = "t2.micro"
@@ -5,6 +6,7 @@ resource "aws_instance" "jenkins" {
   associate_public_ip_address = true
   key_name                    = "${var.aws_key_name}"
   iam_instance_profile        = "${aws_iam_instance_profile.consul-server-instance-profile.name}"
+  depends_on                  = ["aws_instance.consul_server"]
   
   connection {
     user        = "ubuntu"

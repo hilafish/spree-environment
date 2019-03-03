@@ -17,6 +17,7 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+data "aws_availability_zones" "available" {}
 
 data "template_file" "elasticsearch-userdata" {
   template = "${file("${path.module}/config/user-data/elasticsearch-userdata.sh.tpl")}"
@@ -91,7 +92,6 @@ data "template_file" "kibana_grafana-userdata" {
   template = "${file("${path.module}/config/user-data/kibana_grafana-userdata.sh.tpl")}"
 
   vars {
-    LOCAL_IPV4 = "$${LOCAL_IPV4}"
     CHECKPOINT_URL            = "https://checkpoint-api.hashicorp.com/v1/check"
     LOCAL_IPV4                = "$${LOCAL_IPV4}"
     CONSUL_VERSION            = "$${CONSUL_VERSION}"

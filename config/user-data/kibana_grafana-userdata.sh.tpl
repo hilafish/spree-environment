@@ -21,9 +21,6 @@ sudo mv /tmp/prometheus_dashboards.yaml /etc/grafana/provisioning/dashboards/
 sudo systemctl restart kibana
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
-sleep 120
-curl -f -XPOST -H 'Content-Type: application/json' -H 'kbn-xsrf: anything' "http://${LOCAL_IPV4}:5601/api/saved_objects/index-pattern/filebeat-*" '-d{"attributes":{"title":"filebeat-*","timeFieldName":"@timestamp"}}'
-curl -u elastic:elasticsearch.service.consul -k -XPOST "http://${LOCAL_IPV4}:5601/api/kibana/dashboards/import" -H 'Content-Type: application/json' -H "kbn-xsrf: true" -d @/tmp/kibana_dashboard.json
 
 # Install Node Exporter
 sudo useradd --no-create-home --shell /bin/false node_exporter
@@ -208,3 +205,7 @@ output.elasticsearch:
   hosts: ["elasticsearch.service.consul:9200"]' > /etc/filebeat/filebeat.yml
 sudo chown root:root /etc/filebeat/filebeat.yml
 sudo service filebeat restart
+
+## Kibana - Create index pattern and dashboard
+curl -f -XPOST -H 'Content-Type: application/json' -H 'kbn-xsrf: anything' "http://${LOCAL_IPV4}:5601/api/saved_objects/index-pattern/filebeat-*" '-d{"attributes":{"title":"filebeat-*","timeFieldName":"@timestamp"}}'
+curl -u elastic:elasticsearch.service.consul -k -XPOST "http://${LOCAL_IPV4}:5601/api/kibana/dashboards/import" -H 'Content-Type: application/json' -H "kbn-xsrf: true" -d @/tmp/kibana/kibana_dashboard.json
